@@ -448,6 +448,13 @@ Click Create policy.
 - Create an IAM role for the controller using eksctl:
 
 ```sh
+
+eksctl utils associate-iam-oidc-provider \
+  --region=ap-southeast-1 \
+  --cluster=ewallet-eks-cluster-uat \
+  --approve
+
+
 eksctl create iamserviceaccount \
   --cluster=ewallet-eks-cluster \
   --namespace=kube-system \
