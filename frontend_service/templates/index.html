@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eWallet</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+        }
+        h1, h2 {
+            color: #fff;
+        }
+        form {
+            margin: 20px 0;
+        }
+        input[type="text"], input[type="email"], input[type="number"] {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #fff;
+        }
+        th {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>eWallet</h1>
+
+        <!-- Create User Form -->
+        <h2>Create User</h2>
+        <form action="/create_user" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <button type="submit">Create User</button>
+        </form>
+
+        <!-- Users and Wallets -->
+        <h2>Users and Wallets</h2>
+        <table>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Wallet Balance</th>
+                <th>Actions</th>
+            </tr>
+            {% for user in users %}
+            {% set wallet = wallets[loop.index0] %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ wallet.balance if wallet.balance != 'N/A' else 'N/A' }}</td>
+                <td>
+                    {% if wallet.balance != 'N/A' %}
+                    <form action="/deposit/{{ wallet.id }}" method="POST" style="display:inline;">
+                        <input type="number" name="amount" placeholder="Amount" step="0.01" required>
+                        <button type="submit">Deposit</button>
+                    </form>
+                    <form action="/withdraw/{{ wallet.id }}" method="POST" style="display:inline;">
+                        <input type="number" name="amount" placeholder="Amount" step="0.01" required>
+                        <button type="submit">Withdraw</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

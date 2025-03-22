@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  user-service:
+    image: user:v1
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=e-wallet-instance-1.cvrlgpla3e5u.ap-southeast-1.rds.amazonaws.com
+      - DB_USER=admin
+      - DB_PASSWORD=Thiri2121996
+      - DB_NAME=ewallet
+      - DB_PORT=3306
+
+  wallet-service:
+    image: wallet:v1
+    build:
+      context: ./wallet_service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - DB_HOST=e-wallet-instance-1.cvrlgpla3e5u.ap-southeast-1.rds.amazonaws.com
+      - DB_USER=admin
+      - DB_PASSWORD=Thiri2121996
+      - DB_NAME=ewallet
+      - DB_PORT=3306
+
+  frontend-service:
+    image: frontend:v1
+    build:
+      context: ./frontend_service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      - USER_SERVICE_URL=http://user-service:5000
+      - WALLET_SERVICE_URL=http://wallet-service:5001
+    depends_on:
+      - user-service
+      - wallet-service

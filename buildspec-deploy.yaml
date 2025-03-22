@@ -1,0 +1,36 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - echo Installing kubectl...
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+  pre_build:
+    commands:
+      - echo Configuring AWS credentials...
+      - aws eks update-kubeconfig --region ap-southeast-1 --name ewallet-eks-cluster
+  build:
+    commands:
+      - echo Updating image tags in manifests...
+      - sed -i "s|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-user-service:.*|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-user-service:${CODEBUILD_RESOLVED_SOURCE_VERSION}|" manifests/user-service.yaml
+      - sed -i "s|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-wallet-service:.*|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-wallet-service:${CODEBUILD_RESOLVED_SOURCE_VERSION}|" manifests/wallet-service.yaml
+      - sed -i "s|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-frontend-service:.*|image: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/ewallet-frontend-service:${CODEBUILD_RESOLVED_SOURCE_VERSION}|" manifests/frontend-service.yaml
+      - echo Applying Kubernetes manifests...
+      - kubectl apply -f manifests/namespace.yaml
+      - kubectl apply -f manifests/user-service.yaml
+      - kubectl apply -f manifests/wallet-service.yaml
+      - kubectl apply -f manifests/frontend-service.yaml
+      - kubectl apply -f manifests/frontend-ingress.yaml
+      - echo Waiting for deployments to complete...
+      - kubectl rollout status deployment/user-service -n ewallet --timeout=300s
+      - kubectl rollout status deployment/wallet-service -n ewallet --timeout=300s
+      - kubectl rollout status deployment/frontend-service -n ewallet --timeout=300s
+    on-failure:
+      - echo Deployment failed, rolling back...
+      - kubectl rollout undo deployment/user-service -n ewallet
+      - kubectl rollout undo deployment/wallet-service -n ewallet
+      - kubectl rollout undo deployment/frontend-service -n ewallet
+  post_build:
+    commands:
+      - echo Deployment completed on `date`
