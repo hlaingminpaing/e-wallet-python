@@ -412,60 +412,21 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 sudo ./aws/install
 ```
-### Navigate to EKS:
+## Create eks cluster with eksctl
+```sh
+eksctl.exe create cluster --name ewallet-eks-cluster-uat \
+--region ap-southeast-1 \
+--node-type t2.small \
+--nodes 3 
+```
 
-- In the AWS Management Console, search for “EKS” and click on Elastic Kubernetes Service.
-- Create a New Cluster:
-  - Click the orange Create cluster button.
-  - Cluster name: Enter ewallet-eks-cluster.
-Kubernetes version: Select the latest stable version (e.g., 1.30).
-  - Cluster service role:
-  - If you don’t have an EKS cluster role, create one:
-      - Go to IAM > Roles > Create role.
-      - Trusted entity type: AWS service.
-      - Use case: EKS - Cluster.
-      - Attach policies: AmazonEKSClusterPolicy and     AmazonEKSVPCResourceController.
-      - Role name: eksClusterRole.
-      - Click Create role.
-      - Select eksClusterRole.
-      - Networking:
-      - VPC: Select your existing VPC (same as your ECS setup).
-Subnets: Select your private subnets (e.g., subnet-12345678-private, subnet-87654321-private).
-      - Security group: Use ewallet-ecs-sg (or create a new one with inbound rules for port 443 from your VPC CIDR).
-      - Cluster endpoint access:
-Select Public and private (allows access from within the VPC and externally via kubectl).
-      - Logging: Enable control plane logging to CloudWatch (optional but recommended).
-      - Click Next.
-      - Configure Node Group:
-      - Node group name: ewallet-node-group.
-      - Node group role:
-      - Create a new role in IAM:
-      - Trusted entity type: AWS service.
-      - Use case: EC2.
-      - Attach policies: AmazonEKSWorkerNodePolicy, - AmazonEC2ContainerRegistryReadOnly, AmazonEKS_CNI_Policy.
-      - Role name: eksNodeGroupRole.
-      - Click Create role.
-      - Select eksNodeGroupRole.
-      - Instance type: t3.medium (or choose based on your workload).
-      - Desired capacity: 2 nodes.
-      - Subnets: Select your private subnets.
-      - Click Next.
-      - Review and Create:
-      - Review the settings and click Create.
-      - The cluster creation will take 10-15 minutes. Wait until the status changes to “Active”.
-      - Configure kubectl to Access the Cluster:
-After the cluster is created, update your kubeconfig to connect to the cluster:
-      - ```sh
-        aws eks update-kubeconfig --region ap-southeast-1 --name ewallet-eks-cluster
-        ```
-      - Verify connectivity:
-      - ```sh
-        kubectl get nodes
-        ```
-      - ```sh
-        kubectl apply -f mainifest/.
-        kubectl get ingress -n ewallet
-        ```
+After the cluster is created, check cluster:
+```sh
+# aws eks update-kubeconfig --region ap-southeast-1 --name ewallet-eks-cluster
+kubectl get nodes
+kubectl apply -f mainifest/.
+kubectl get ingress -n ewallet
+```
 
 - Look for the ADDRESS column (e.g., xxxx.ap-southeast-1.elb.amazonaws.com). This is the URL to access your application.
 Test the Application:
